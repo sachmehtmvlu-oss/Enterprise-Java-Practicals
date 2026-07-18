@@ -1,0 +1,243 @@
+CREATE DATABASE userdb;
+
+USE userdb;
+
+CREATE TABLE users
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(50)
+);
+
+index.jsp
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Home</title>
+</head>
+<body>
+<h2>Registration & Login System</h2>
+<a href="register.jsp">Register</a>
+<br><br>
+<a href="login.jsp">Login</a>
+</body>
+</html>
+
+register.jsp:
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*" %>
+<%@ page import="db.DBConnection" %>
+
+<%
+String msg = "";
+
+if(request.getMethod().equalsIgnoreCase("POST"))
+{
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
+
+    Connection con = DBConnection.getConnection();
+
+    if(con == null)
+    {
+        msg = "Database Connection Failed";
+    }
+    else
+    {
+        try
+        {
+            PreparedStatement check = con.prepareStatement(
+                "SELECT * FROM users WHERE username=?");
+
+            check.setString(1, username);
+
+            ResultSet rs = check.executeQuery();
+
+            if(rs.next())
+            {
+                msg = "Username Already Exists";
+            }
+            else
+            {
+                PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO users(username,password) VALUES(?,?)");
+
+                ps.setString(1, username);
+                ps.setString(2, password);
+
+                int i = ps.executeUpdate();
+
+                if(i > 0)
+                {
+                    msg = "Registration Successful";
+                }
+                else
+                {
+                    msg = "Registration Failed";
+                }
+
+                ps.close();
+            }
+
+            rs.close();
+            check.close();
+            con.close();
+
+        }
+        catch(Exception e)
+        {
+            msg = e.getMessage();
+        }
+    }
+}
+%>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+</head>
+<body>
+<h2>User Registration</h2>
+<form method="post">
+<table>
+<tr>
+<td>Username</td>
+<td><input type="text" name="username" required></td>
+</tr>
+<tr>
+<td>Password</td>
+<td><input type="password" name="password" required></td>
+</tr>
+<tr>
+<td></td>
+<td><input type="submit" value="Register"></td>
+</tr>
+</table>
+</form>
+<br>
+<font color="red">
+<%= msg %>
+</font>
+<br><br>
+<a href="login.jsp">Go to Login</a>
+</body>
+</html>
+login.jsp
+<%@ page import="java.sql.*" %>
+<%@ page import="db.DBConnection" %>
+
+<%
+String msg = "";
+
+if(request.getMethod().equalsIgnoreCase("POST"))
+{
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
+
+    Connection con = DBConnection.getConnection();
+
+    PreparedStatement ps = con.prepareStatement(
+        "SELECT * FROM users WHERE username=? AND password=?");
+
+    ps.setString(1, username);
+    ps.setString(2, password);
+
+    ResultSet rs = ps.executeQuery();
+
+    if(rs.next())
+    {
+        session.setAttribute("username", username);
+        response.sendRedirect("success.jsp");
+    }
+    else
+    {
+        msg = "Invalid Username or Password";
+    }
+}
+%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+</head>
+<body>
+
+<h2>Login</h2>
+
+<form method="post">
+
+Username :
+<input type="text" name="username" required>
+
+<br><br>
+
+Password :
+<input type="password" name="password" required>
+<br><br>
+<input type="submit" value="Login">
+</form>
+<br>
+<%=msg%>
+</body>
+</html>
+
+success.jsp
+<%
+String user = (String)session.getAttribute("username");
+
+if(user == null)
+{
+    response.sendRedirect("login.jsp");
+    return;
+}
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Success</title>
+</head>
+<body>
+
+<h2>Login Successful</h2>
+
+<h3>Welcome <%=user%></h3>
+
+<a href="index.jsp">Logout</a>
+
+</body>
+</html>
+
+DBConnection.java:
+package db;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+public class DBConnection {
+
+
+    public static Connection getConnection() {
+
+        Connection con = null;
+
+
+        try {
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+
+            String url = "jdbc:mysql://localhost:3306/db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+
+            con = DriverManager.getConnection(url, "root", "Rajp@0103");
+
+            System.out.println("Database Connected Successfully");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return con;
+    }
+}
