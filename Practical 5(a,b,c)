@@ -1,0 +1,120 @@
+a)
+index.html:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Update</title>
+</head>
+<body>
+<h2>Employee Update Form</h2>
+<form action="update.jsp" method="post">
+    Employee No:
+    <input type="text" name="eno"><br><br>
+    Name:
+    <input type="text" name="name"><br><br>
+    Age:
+    <input type="text" name="age"><br><br>
+    Designation:
+    <input type="text" name="designation"><br><br>
+    Salary:
+    <input type="text" name="salary"><br><br>
+    <input type="submit" value="Update Employee">
+</form>
+</body>
+</html>
+
+Update.jsp:
+<%@page import="java.sql.*"%>
+<%
+String eno = request.getParameter("eno");
+String name = request.getParameter("name");
+String age = request.getParameter("age");
+String designation = request.getParameter("designation");
+String salary = request.getParameter("salary");
+try
+{
+    Class.forName("com.mysql.jdbc.Driver");
+
+
+
+    Connection con = DriverManager.getConnection(
+    "jdbc:mysql://localhost:3306/employee_db",
+    "root",
+    "IT");
+    PreparedStatement ps = con.prepareStatement(
+    "UPDATE employee SET name=?, age=?, designation=?, salary=? WHERE eno=?");
+    ps.setString(1, name);
+    ps.setInt(2, Integer.parseInt(age));
+    ps.setString(3, designation);
+    ps.setDouble(4, Double.parseDouble(salary));
+    ps.setInt(5, Integer.parseInt(eno));
+    int i = ps.executeUpdate();
+    if(i>0)
+        out.println("<h2>Employee Updated Successfully</h2>");
+    else
+        out.println("<h2>Employee Number Not Found</h2>");
+
+    con.close();
+}
+catch(Exception e)
+{
+    out.println(e);
+}
+%>
+
+
+b)
+index.html:
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Home Page</h2>
+<a href="language.jsp">Open JSP EL Example</a>
+</body>
+</html>
+
+Expressions.jsp:
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Expression Language Demo</title>
+    </head>
+    <body>
+        <h2>JSP Expression Language Example</h2>
+        <p>Addition: ${12+2}</p>
+        <p>Multiplication: ${5*4}</p>
+        <p>Division: ${20/5}</p>
+        <p>Comparison: ${10>5}</p>
+        <p>Logical Operation: ${true && false}</p>
+    </body>
+</html>
+
+c)
+index.html:
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Home Page</h2>
+<a href="language.jsp">Open JSP EL Example</a>
+</body>
+</html>
+
+
+
+
+Expressions.jsp:
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Core Tag Example</title>
+</head>
+<body>
+<c:forEach var = "j" begin="5" end="15">
+Item <c:out value = "${j}"/><p>
+</c:forEach>
+</body>
+</html>
